@@ -54,15 +54,15 @@ def responses_model(model_name, model_prompts, access_token):
   tokenizer = AutoTokenizer.from_pretrained(model_name, token=access_token)
   model = AutoModelForCausalLM.from_pretrained(model_name, token=access_token)
 
- 
   model_dict_list = []
   for prompt_dict in model_prompts:
     if 'input' in prompt_dict.keys():
+      turns = 'single'
       response = generate_txt(model, tokenizer,
                               chain_of_thought_addendum + prompt_dict['input'],
                               seed_val=1234)
     else:
-      # mt-bench text here
+      turns = 'multi'
       response1 = generate_txt(model, tokenizer,
                                prompt_dict['turns'][0],
                                seed_val=1234)
@@ -71,7 +71,8 @@ def responses_model(model_name, model_prompts, access_token):
                                seed_val = 1234)
       response = response2
     model_dict = {'prompt': prompt_dict,
-                  'response': response}
+                  'response': response,
+                  'type': turns}
     model_dict_list.append(model_dict)
   return responses
 
@@ -80,15 +81,22 @@ for model_name, prompts in model_prompts.items():
   responses = responses_model(model_name, prompts)
   model_responses[model_name] = responses
   
+# Save outputs to json
+with open('model_responses.json', 'w') as f:
+    json.dump(model_responses, f)
+  
 # Realign prompt responses by prompt from the model outputs
 prompt_responses = {}
-for model_name, responses in model_responses.items():
-    for response_data in responses:
-        prompt = response_data['prompt']
-        response = response_data['response']
-        if prompt not in prompt_responses:
-            prompt_responses[prompt] = {}
-        prompt_responses[prompt][model_name] = response
+for model_name, response_list in model_responses.items():
+        for response_dict in response_list:
+            prompt_dict = response_dict['prompt']
+            prompt_key = prompt_dict['prompt']
+            if prompt_key not in prompt_responses:
+                prompt_responses[prompt_key] = {
+                    'type': response_dict['type'],
+                    'model_responses': {}
+                }
+            prompt_responses[prompt_key]['model_responses'][model_name] = response_dict['response']
 
 # Save outputs to json
 with open('prompt_responses.json', 'w') as f:

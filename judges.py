@@ -5,6 +5,7 @@ import json
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from transformers import set_seed
 import torch
+import pandas as pd
 from reliabilipy import reliability_analysis
 
 import utils
@@ -34,6 +35,9 @@ judge_bbh = [[generate_txt(judge_prompt+"\nQuestion: "+q+"\n[A]: "+resp['model_r
                            "\n[E]: "+resp['model_responses'][4],
                            indiv_seed) for indiv_seed in judge_seeds]\
              for q, resp in prompt_resp_lst.items() if resp['type'] == 'single']
+# Save outputs to json
+with open('judge_bbh.json', 'w') as f:
+    json.dump(judge_bbh, f)
 judge_mt = [[generate_txt(judge_prompt+"\nQuestion: "+q[1]+"\n[A]: "+resp['model_responses'][0]+\
                           "\n[B]: "+resp['model_responses'][1]+ \
                            "\n[C]: "+resp['model_responses'][2]+\
@@ -41,6 +45,9 @@ judge_mt = [[generate_txt(judge_prompt+"\nQuestion: "+q[1]+"\n[A]: "+resp['model
                           "\n[E]: "+resp['model_responses'][4]
                           ,indiv_seed) for indiv_seed in judge_seeds]\
              for q, resp in prompt_resp_lst.items() if resp['type']== 'multi']
+# Save outputs to json
+with open('judge_mt.json', 'w') as f:
+    json.dump(judge_mt, f)
 
 letter_to_number = {'[A]': 1, '[B]': 2, '[C]': 3, '[D]': 4, '[E]': 5}
 judge_bbh_numeric = [[letter_to_number[indiv_judge] for indiv_judge in prompt_judge] for prompt_judge in judge_bbh]
@@ -54,3 +61,10 @@ alpha_mtb = mtb_reliab.alpha_cronbach
 omega_bbh = bbh_reliab.omega_total
 omega_mtb = mtb_reliab.omega_total
 
+# Save results to csv
+results = {
+    "alpha": [alpha_bbh, alpha_mtb],
+    "omega": [omega_bbh, omega_mtb]
+}
+results_df = pd.DataFrame(results, index=["BBH", "MTB"])
+results_df.to_csv("judge_reliab.csv")

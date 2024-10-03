@@ -6,6 +6,8 @@ import torch
 
 import utils
 
+device = "cuda:0"
+
 # Define LLM types
 model_types = ['meta-llama/Meta-Llama-3-8B',
                'mistralai/Mistral-7B-v0.1',
@@ -35,10 +37,6 @@ model_prompts = {}
 for model in model_types:
   model_prompts[model] = [prompt for prompt, q_mods in zip(all_qs, model_per_qs) if model in q_mods]
   
-# CHECK IF I NEED TO CHANGE THE CUDA or cpu PART FOR STINGER
-device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-
-
 chain_of_thought_addendum = 'Include step-by-step reasoning in answering the following question: \n'
 
 

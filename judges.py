@@ -10,6 +10,8 @@ from reliabilipy import reliability_analysis
 
 import utils
 
+device = "cuda:0"
+
 # Load data for judgement
 with open('prompt_responses.json', 'r') as resp:
     prompt_resp = json.load(resp)

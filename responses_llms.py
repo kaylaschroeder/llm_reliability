@@ -76,7 +76,7 @@ def responses_model(model_name, model_prompts, access_token):
 
 model_responses = {}
 for model_name, prompts in model_prompts.items():
-  responses = responses_model(model_name, prompts)
+  responses = responses_model(model_name, prompts, access_token)
   model_responses[model_name] = responses
   
 # Save outputs to json

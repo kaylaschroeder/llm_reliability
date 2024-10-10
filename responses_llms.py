@@ -75,7 +75,7 @@ def responses_model(model_name, model_prompts, access_token):
                   'response': response,
                   'type': turns}
     model_dict_list.append(model_dict)
-  return responses
+  return model_dict_list
 
 model_responses = {}
 for model_name, prompts in model_prompts.items():

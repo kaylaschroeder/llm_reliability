@@ -10,7 +10,7 @@ device = "cuda:0"
 
 # Define LLM types
 model_types = ['meta-llama/Meta-Llama-3-8B',
-               'mistralai/Mistral-7B-v0.1',
+#               'mistralai/Mistral-7B-v0.1',
                'lmsys/vicuna-7b-v1.5',
                'google/gemma-7b',
                'bigscience/bloom-7b1',
@@ -49,8 +49,11 @@ def responses_model(model_name, model_prompts, access_token):
   Returns:
     list of model responses for each prompt
   '''
+  print(f'Loading model tokenizer for {model_name}.')
   tokenizer = AutoTokenizer.from_pretrained(model_name, token=access_token)
+  print(f'Tokenizer loaded. Loading model {model_name}.')
   model = AutoModelForCausalLM.from_pretrained(model_name, token=access_token)
+  print(f'Model {model_name} loaded.')
 
   model_dict_list = []
   for prompt_dict in model_prompts:
@@ -101,7 +104,7 @@ for model_name, response_list in model_responses.items():
           'prompt': prompts,
           'model_responses': {}
       }
-      prompt_responses[prompt_key]['model_responses'][model_name] = response_dict['response']
+    prompt_responses[prompt_key]['model_responses'][model_name] = response_dict['response']
 
 # Save outputs to json
 with open('prompt_responses.json', 'w') as f:

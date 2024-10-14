@@ -1,14 +1,11 @@
-!pip install reliabiliPy
-
 import random
 import json
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from transformers import set_seed
 import torch
-import pandas as pd
-from reliabilipy import reliability_analysis
 
-import utils
+from utils import generate_judge
+
 
 device = "cuda:0"
 
@@ -17,7 +14,7 @@ access_token = ''
 
 # Define LLM judge types
 model_types = ['meta-llama/Meta-Llama-3-8B',
-               'mistralai/Mistral-7B-v0.1',
+#               'mistralai/Mistral-7B-v0.1',
                'lmsys/vicuna-7b-v1.5',
                'google/gemma-7b',
                'bigscience/bloom-7b1',
@@ -33,14 +30,17 @@ with open('prompt_responses.json', 'r') as resp:
 random.seed(2)
 judge_seeds = random.sample(range(1,10000),100)
 
-judge_prompt = """You are a fair and objective judge tasked with selecting the strongest of the following responses to the
-provided question based upon the accuracy, utility, and relevance of each. Do not consider length of response, positioning
-of response or title of response in your judgement. Output exclusively the letter of the best response and nothing else.
+judge_prompt = """You are a fair and objective judge tasked with selecting the strongest of the following responses to the provided question. Base your judgement upon the accuracy, utility, and relevance of each. Do not consider length of response, positioning of response or title of response in your judgement. Output exclusively the letter of the best response and nothing else.
 """
 
-  prompt_resp_formatted = {}
-for prompt, resp_dict in prompt_resp.items():
-  prompt_resp_formatted[prompt] = {'type': resp_dict['type'], 'model_responses': list(resp_dict['model_responses'].values())}
+judge_prompt_multi = """You are a fair and objective judge tasked with selecting the strongest of the following responses to the second provided question ("Question 2"). Question 1 is only provided for context. Base your judgement upon the accuracy, utility, and relevance of each. Do not consider length of response, positioning of response or title of response in your judgement. Output exclusively the letter of the best response and nothing else.
+"""
+
+prompt_resp_formatted = {}
+for prompt_label, resp_dict in prompt_resp.items():
+  prompt_resp_formatted[prompt_label] = {'type': resp_dict['type'],
+                                   'prompt': resp_dict['prompt'],
+                                   'model_responses': list(resp_dict['model_responses'].values())}
 
 def model_judge(model_name, prompts_judge, access_token):
   '''
@@ -56,60 +56,38 @@ def model_judge(model_name, prompts_judge, access_token):
 
   model_judge_list = []
   for prompt_dict in prompts_judge:
-    judge_bbh = [[generate_txt(model, tokenizer, judge_prompt+"\nQuestion: "+q+"\n[A]: "+\
-      resp['model_responses'][0]+\
-      "\n[B]: "+resp['model_responses'][1]+ \
-      "\n[C]: "+resp['model_responses'][2]+\
-      "\n[D]: "+ resp['model_responses'][3]+\
-      "\n[E]: "+resp['model_responses'][4],
-      indiv_seed) for indiv_seed in judge_seeds]\
-      for q, resp in prompts_judge.items() if resp['type'] == 'single']
-    with open(f'judge_bbh_{model_name}.json','w') as f:
+    judge_bbh = [[generate_judge(model, tokenizer, judge_prompt+"\nQuestion: "+\
+      q_dict['prompt']+"Responses: \n[A]: "+\
+      q_dict['model_responses'][0]+\
+      "\n[B]: "+ q_dict['model_responses'][1]+ \
+      "\n[C]: "+ q_dict['model_responses'][2]+\
+      "\n[D]: "+ q_dict['model_responses'][3]+\
+      "\n[E]: "+ q_dict['model_responses'][4],
+      indiv_seed, device) for indiv_seed in judge_seeds]\
+      for q, q_dict in prompts_judge.items() if q_dict['type'] == 'single']
+    with open(f'judge_bbh_{model_name.replace('/', '_')}.json','w') as f:
           json.dump(judge_bbh, f)
-    judge_mt = [[generate_txt(judge_prompt+"\nQuestion: "+q[1]+"\n[A]: "+\
-    resp['model_responses'][0]+\
-    "\n[B]: "+resp['model_responses'][1]+ \
-    "\n[C]: "+resp['model_responses'][2]+\
-    "\n[D]: "+resp['model_responses'][3]+\
-    "\n[E]: "+resp['model_responses'][4]
-    ,indiv_seed) for indiv_seed in judge_seeds]\
-    for q, resp in prompts_judge.items() if resp['type']== 'multi']
+    judge_mt = [[generate_judge(judge_prompt_multi+"\nQuestion 1: "+q_dict['prompt'][0]+\
+      "\nQuestion 2: "+q_dict['prompt'][1]+\
+      "Responses: \n[A]: "+ q_dict['model_responses'][0]+\
+      "\n[B]: "+q_dict['model_responses'][1]+ \
+      "\n[C]: "+q_dict['model_responses'][2]+\
+      "\n[D]: "+q_dict['model_responses'][3]+\
+      "\n[E]: "+q_dict['model_responses'][4],
+      indiv_seed, device) for indiv_seed in judge_seeds]\
+    for q, q_dict in prompts_judge.items() if q_dict['type']== 'multi']
     # Save outputs to json
-    with open(f'judge_mt_{model_name}.json', 'w') as f:
+    with open(f'judge_mt_{model_name.replace('/', '_')}.json', 'w') as f:
         json.dump(judge_mt, f)
   return [judge_bbh,judge_mt]
-  
-  
-def judge_reliab(mod_name, judged_prompts):
-  '''
-  Args:
-    model_name: Hugging Face model name
-    prompts_judge: list of the model's judgement replications for each prompt
-  Returns:
-    df of the reliability of the model's judgements across replications
-  '''
-  letter_to_number = {'[A]': 1, '[B]': 2, '[C]': 3, '[D]': 4, '[E]': 5}
-  judge_bbh_numeric = [[letter_to_number[indiv_judge] for indiv_judge in prompt_judge] for prompt_judge in judged_prompts[0]]
-  judge_mt_numeric = [[letter_to_number[indiv_judge] for indiv_judge in prompt_judge] for prompt_judge in judged_prompts[1]]
-  bbh_reliab = reliability_analysis(raw_dataset=pd.DataFrame(judge_bbh_numeric).T, is_corr_matrix=False)
-  bbh_reliab.fit()
-  mtb_reliab = reliability_analysis(raw_dataset=pd.DataFrame(judge_mt_numeric).T, is_corr_matrix=False)
-  mtb_reliab.fit()
-  full_reliab = reliability_analysis(raw_dataset=pd.DataFrame(judge_bbh_numeric+ judge_mt_numeric).T, is_corr_matrix=False)
-  full_reliab.fit()
-  results = {
-        "alpha": [bbh_reliab.alpha_cronbach, mtb_reliab.alpha_cronbach, full_reliab.alpha_cronbach],
-        "omega": [bbh_reliab.omega_total, mtb_reliab.omega_total, full_reliab.omega_total]
-  }
-  results_df = pd.DataFrame(results, index=["BBH", "MTB","Full"])
-  results_df.to_csv(f"judge_reliab_{mod_name}.csv")
-  return results_df
-  
+
 
 judgements_by_mod = {}
-reliability_by_mod = {}
 for mod in model_types:
-    judgements_by_mod[mod] = model_judge(mod, prompt_resp_lst, access_token)
-    reliability_by_mod[mod] = judge_reliab(mod, judgements_by_mod[mod])
+    judgements_by_mod[mod] = model_judge(mod, prompt_resp_formatted, access_token)
+
+# Save judgements outputs to json
+with open('full_judgements.json', 'w') as f:
+    json.dump(judgements_by_mod, f)
 
 

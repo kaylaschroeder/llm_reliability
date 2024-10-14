@@ -65,7 +65,8 @@ def model_judge(model_name, prompts_judge, access_token):
       "\n[E]: "+ q_dict['model_responses'][4],
       indiv_seed, device) for indiv_seed in judge_seeds]\
       for q, q_dict in prompts_judge.items() if q_dict['type'] == 'single']
-    with open(f'judge_bbh_{model_name.replace('/', '_')}.json','w') as f:
+    mod_print_name = model_name.replace('/', '_')
+    with open(f'judge_bbh_{mod_print_name}.json','w') as f:
           json.dump(judge_bbh, f)
     judge_mt = [[generate_judge(judge_prompt_multi+"\nQuestion 1: "+q_dict['prompt'][0]+\
       "\nQuestion 2: "+q_dict['prompt'][1]+\
@@ -77,7 +78,7 @@ def model_judge(model_name, prompts_judge, access_token):
       indiv_seed, device) for indiv_seed in judge_seeds]\
     for q, q_dict in prompts_judge.items() if q_dict['type']== 'multi']
     # Save outputs to json
-    with open(f'judge_mt_{model_name.replace('/', '_')}.json', 'w') as f:
+    with open(f'judge_mt_{mod_print_name}.json', 'w') as f:
         json.dump(judge_mt, f)
   return [judge_bbh,judge_mt]
 

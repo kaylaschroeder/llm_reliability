@@ -10,7 +10,6 @@ device = "cuda:0"
 
 # Define LLM types
 model_types = ['meta-llama/Meta-Llama-3-8B',
-#               'mistralai/Mistral-7B-v0.1',
                'lmsys/vicuna-7b-v1.5',
                'google/gemma-7b',
                'bigscience/bloom-7b1',

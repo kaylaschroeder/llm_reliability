@@ -1,50 +1,104 @@
 from reliabilipy import reliability_analysis
 import pandas as pd
+import json
+import re
 
-model_types = ['meta-llama/Meta-Llama-3-8B',
-#               'mistralai/Mistral-7B-v0.1',
-               'lmsys/vicuna-7b-v1.5',
-               'google/gemma-7b',
-               'bigscience/bloom-7b1',
-               'microsoft/phi-2',
-               'tiiuae/falcon-7b']
+# LLM judge types
+model_types = ['Nexusflow/Starling-LM-7B-beta']
 
-# Load data judgement data
-with open('full_judgements.json', 'r') as resp:
-        judgements_by_mod = json.load(resp)
-
-def judge_reliab(mod_name, judged_prompts):
+# Load judgement data by model
+judgements_by_mod  = {}
+for mod in model_types:
+    mod_print_name = mod.replace('/', '_')
+    with open(f'judge_full_{mod_print_name}.json','r') as resp:
+        judgements_by_mod[mod] = json.load(resp)
+ 
+def judge_to_numeric(judged_prompts):
   '''
   Args:
-    model_name: Hugging Face model name
-    prompts_judge: list of the model's judgement replications for each prompt
+    judged_prompts: list of the model's judgement replications for each prompt for each model
   Returns:
-    df of the reliability of the model's judgements across replications
+    dict of the judgements represented numerically
   '''
-  letter_to_number = {'[A]': 1, '[B]': 2, '[C]': 3, '[D]': 4, '[E]': 5}
-  judge_bbh_numeric = [[letter_to_number[indiv_judge] for indiv_judge in prompt_judge] for prompt_judge in judged_prompts[0]]
-  judge_mt_numeric = [[letter_to_number[indiv_judge] for indiv_judge in prompt_judge] for prompt_judge in judged_prompts[1]]
-  bbh_reliab = reliability_analysis(raw_dataset=pd.DataFrame(judge_bbh_numeric).T, is_corr_matrix=False)
-  bbh_reliab.fit()
-  mtb_reliab = reliability_analysis(raw_dataset=pd.DataFrame(judge_mt_numeric).T, is_corr_matrix=False)
-  mtb_reliab.fit()
-  full_reliab = reliability_analysis(raw_dataset=pd.DataFrame(judge_bbh_numeric+ judge_mt_numeric).T, is_corr_matrix=False)
-  full_reliab.fit()
-  results = {
-        "alpha": [bbh_reliab.alpha_cronbach, mtb_reliab.alpha_cronbach, full_reliab.alpha_cronbach],
-        "omega": [bbh_reliab.omega_total, mtb_reliab.omega_total, full_reliab.omega_total]
-  }
-  results_df = pd.DataFrame(results, index=["BBH", "MTB","Full"])
-  results_df.to_csv(f'judge_reliab_{mod_name}.csv')
-  return results_df
-  
-  
-reliability_by_mod = {}
-for mod in model_types:
-    reliability_by_mod[mod] = judge_reliab(mod, judgements_by_mod[mod])
-    
+  letter_to_number = {'A': 1.0, 'B': 2.0, 'C': 3.0, 'D': 4.0, 'E': 5.0}
+  num_judge_by_mod = {}
+  for mod, jud_dict in judged_prompts.items():
+    num_judge_by_mod[mod] = {}
+    for prompt, judgements in jud_dict.items():
+      curr_judgements = []
+      for jud in judgements:
+          jud_res = re.findall(r"\[\[[A-E]+(?:\]\])?",jud)
+          jud_set = set(jud_res)
+          # Only 1 response provided
+          if len(jud_res) == 1 or len(jud_set) == 1:
+            curr_judgements.append(letter_to_number[jud_res[0][2]])
+          # Same as above, handling answer cutoff
+          elif len(jud_set) == 2 and list(jud_set)[0][0:3]== list(jud_set)[1][0:3]:
+            curr_judgements.append(letter_to_number[jud_res[0][2]])
+          # No responses provided
+          elif len(jud_res) == 0:
+            # Check for invalid solutions - assign these 7.0
+            inv_res = re.findall(r"\[\[[A-E]+(?:\]\])?",jud)
+            if len(inv_res) > 0:
+              curr_judgements.append(7.0)
+            else:
+              # Otherwise no response was provided
+              curr_judgements.append(6.0)
+          # Duplicates listed in response format
+          else:
+            # Split on sentences to find response
+            sent_split = re.split(r"(?<!\w\.\w\.)(?<![A-Z]\.)(?<!\w\.\w\.)\s*\.\s*", jud)
+            relev_sent = [sent for sent in sent_split if 'best' in sent.lower() or 'correct' in sent.lower()]
+            if len(relev_sent) == 0:
+              curr_judgements.append(6.0)
+            else:
+              ans = re.findall(r"\[\[[A-E]+(?:\]\])?",relev_sent[0])
+              if len(set(ans)) == 1:
+                curr_judgements.append(letter_to_number[ans[0][2]])
+              else:
+                # Split on newlines to find response
+                split_newlines = re.findall(r"(?:.*\[\[[A-E]+\]\].*)", relev_sent_tst[0], re.MULTILINE)
+                for split in split_newlines:
+                  if 'best' in split.lower() or 'correct' in split.lower():
+                    ans = re.findall(r"\[\[[A-E]+(?:\]\])?",split)
+                    curr_judgements.append(letter_to_number[ans[0][2]])
+      num_judge_by_mod[mod][prompt] = curr_judgements
+  return num_judge_by_mod
 
-# Combine reliability into full df for all models
-combined_df = pd.concat([df.assign(key=key) for key, df in reliability_by_mod.items()], ignore_index=True)
-combined_df.to_csv('full_judge_reliab.csv')
+def judge_reliab(judged_prompts_num):
+  '''
+  Args:
+    prompts_judge_num: list of the numerical representation for the model's judgement replications for each prompt
+  Returns:
+    df of the reliability of the model's judgements across replications for BBH only, MT-bench only, and full set of responses
+  '''
+  mod_print_name = mod.replace('/', '_')
+  df = pd.DataFrame.from_dict(judged_prompts_num)
+  # Drop columns where LLM makes no judgements
+  for col in df.columns:
+    if len(df[col].unique()) == 1 and df[col].unique() == [6.0]:
+      df.drop(col, axis=1, inplace=True)
+  full_reliab = reliability_analysis(raw_dataset=df, is_corr_matrix=False)
+  full_reliab.fit()
+  bbh_df = df.loc[:, df.columns.str.startswith('single')]
+  bbh_reliab = reliability_analysis(raw_dataset=bbh_df, is_corr_matrix=False)
+  bbh_reliab.fit()
+  mt_df = df.loc[:, df.columns.str.startswith('multi')]
+  mt_reliab = reliability_analysis(raw_dataset=mt_df, is_corr_matrix=False)
+  mt_reliab.fit()
+  results = {
+      "alpha": [bbh_reliab.alpha_cronbach, mt_reliab.alpha_cronbach, full_reliab.alpha_cronbach],
+      "omega": [bbh_reliab.omega_total, mt_reliab.omega_total, full_reliab.omega_total]
+      }
+  results_df = pd.DataFrame(results, index=["BBH", "MTB","Full"])
+  return results_df
+
+
+num_judge = judge_to_numeric(judgements_by_mod)
+
+judge_reliab_by_mod = {}
+for mod, judge_dict in num_judge.items():
+  judge_reliab_by_mod[mod] = judge_reliab(judge_dict)
+  mod_print_name = mod.replace('/', '_')
+  judge_reliab_by_mod[mod].to_csv(f'judge_reliab_{mod_print_name}.csv')
   

@@ -39,3 +39,23 @@ df_bbh_sampled = pd.DataFrame(bbh_data_sampled,columns=['category','input','targ
 bbh_file = 'bbh_sampled_q.json'
 with open(bbh_file, 'w') as f:
   json.dump(df_bbh_sampled.to_dict(orient='records'), f, indent=4)
+  
+# SQuAD
+with open('squad_qs.json','r') as f:
+    squad_qs = json.load(f)
+random.seed(1)
+sampled_dat = random.sample(squad_qs['data'],20)
+sampled_paragraphs = [random.sample(dat['paragraphs'],1)[0] for dat in sampled_dat]
+squad_sampled_qs = []
+for par in sampled_paragraphs:
+    curr_dict = {}
+    curr_dict['context'] = par['context']
+    q_dict = par['qas'][0]
+    curr_dict['question'] = q_dict['question']
+    curr_dict['answers'] = q_dict['answers']
+    curr_dict['is_impossible'] = q_dict['is_impossible']
+    curr_dict['id'] = q_dict['id']
+    squad_sampled_qs.append(curr_dict)
+
+with open('squad_sampled_q.json','w') as f:
+    json.dump(squad_sampled_qs,f)

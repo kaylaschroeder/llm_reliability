@@ -59,13 +59,22 @@ def responses_model(model_name, model_prompts, access_token):
   model_dict_list = []
   for prompt_dict in model_prompts:
     if 'input' in prompt_dict.keys():
-      turns = 'single'
+      benchmark = 'bbh'
       response = generate_txt(model, tokenizer,
                               chain_of_thought_addendum + prompt_dict['input'],
                               seed_val=1234,
                               device = device)
+    elif 'context' in prompt_dict.keys():
+      benchmark = 'squad'
+      response = generate_txt(model, tokenizer,
+                              chain_of_thought_addendum +\
+                              'Context: '+prompt_dict['context']+\
+                              '\n Question: {'+prompt_dict['question']+\
+                              ' Answer:',
+                              seed_val=1234,
+                              device = device)
     else:
-      turns = 'multi'
+      benchmark = 'mtb'
       response1 = generate_txt(model, tokenizer,
                                prompt_dict['turns'][0],
                                seed_val=1234,
@@ -77,7 +86,7 @@ def responses_model(model_name, model_prompts, access_token):
       response = response2
     model_dict = {'prompt': prompt_dict,
                   'response': response,
-                  'type': turns}
+                  'benchmark': benchmark}
     model_dict_list.append(model_dict)
   return model_dict_list
 

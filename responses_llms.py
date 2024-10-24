@@ -104,13 +104,18 @@ prompt_responses = {}
 for model_name, response_list in model_responses.items():
   for response_dict in response_list:
     prompt_key = response_dict['type'] + ':' + response_dict['prompt']['category']
-    if response_dict['type'] == 'multi':
+    if response_dict['benchmark'] == 'mtb':
+      prompt_key = response_dict['benchmark'] + ':' + response_dict['prompt']['category']
       prompts = response_dict['prompt']['turns']
-    else:
+    elif response_dict['benchmark'] == 'bbh':
+      prompt_key = response_dict['benchmark'] + ':' + response_dict['prompt']['category']
       prompts = response_dict['prompt']['input']
+    else:
+      prompt_key = response_dict['benchmark'] + ':' + response_dict['prompt']['id']
+      prompts = 'Context: '+ response_dict['prompt']['context'] + '\n Question: '+ response_dict['prompt']['question'] + '\n Answer:'
     if prompt_key not in prompt_responses:
       prompt_responses[prompt_key] = {
-          'type': response_dict['type'],
+          'type': response_dict['benchmark'],
           'prompt': prompts,
           'model_responses': {}
       }

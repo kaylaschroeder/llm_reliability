@@ -24,8 +24,10 @@ with open('bbh_sampled_q.json', 'r') as bbh:
     bbh_qs = json.load(bbh)
 with open('mt_bench_sampled_q.json', 'r') as mt_bench:
     mt_bench_qs = json.load(mt_bench)
-num_qs = len(bbh_qs) + len(mt_bench_qs)
-all_qs = bbh_qs + mt_bench_qs
+with open('squad_sampled_q.json', 'r') as squad:
+    squad_qs = json.load(squad)
+num_qs = len(bbh_qs) + len(mt_bench_qs) + len(squad_qs)
+all_qs = bbh_qs + mt_bench_qs + squad_qs
 
 # Randomly sample 5 models used for responses from benchmark questions
 random.seed(1234)

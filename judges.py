@@ -52,7 +52,7 @@ def model_judge(model_name, prompts_judge, access_token):
   bbh_model_judge_dict = {}
   mt_model_judge_dict = {}
   for q, q_dict in prompts_judge.items():
-    if q_dict['type'] == 'single':
+    if q_dict['type'] == 'bbh':
         mod_judge = [generate_judge(model, tokenizer, judge_prompt+"\nQuestion: "+ \
         q_dict['prompt']+"Responses: \n[A]: "+ q_dict['model_responses'][0]+\
         "\n[C]: "+ q_dict['model_responses'][2]+ \
@@ -60,6 +60,15 @@ def model_judge(model_name, prompts_judge, access_token):
         "\n[E]: "+ q_dict['model_responses'][4],
         indiv_seed, device) for indiv_seed in judge_seeds]
         bbh_model_judge_dict[q] = mod_judge
+        model_judge_dict[q] = mod_judge
+    elif q_dict['type'] == 'squad':
+        mod_judge = [generate_judge(model, tokenizer, judge_prompt+ \
+        q_dict['prompt']+"Responses: \n[A]: "+ q_dict['model_responses'][0]+\
+        "\n[C]: "+ q_dict['model_responses'][2]+ \
+        "\n[D]: "+ q_dict['model_responses'][3]+ \
+        "\n[E]: "+ q_dict['model_responses'][4],
+        indiv_seed, device) for indiv_seed in judge_seeds]
+        squad_model_judge_dict[q] = mod_judge
         model_judge_dict[q] = mod_judge
     else:
         mod_judge = [generate_judge(model, tokenizer, judge_prompt_multi+"\nQuestion 1: "+\
@@ -76,6 +85,8 @@ def model_judge(model_name, prompts_judge, access_token):
   # Save outputs to json
   with open(f'judge_bbh_{mod_print_name}.json','w') as f:
     json.dump(bbh_model_judge_dict, f)
+  with open(f'judge_squad_{mod_print_name}.json','w') as f:
+    json.dump(squad_model_judge_dict, f)
   with open(f'judge_mt_{mod_print_name}.json', 'w') as f:
     json.dump(mt_model_judge_dict, f)
   with open(f'judge_full_{mod_print_name}.json', 'w') as f:

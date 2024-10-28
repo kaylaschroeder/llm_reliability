@@ -74,7 +74,7 @@ def judge_reliab(judged_prompts_num):
   Args:
     prompts_judge_num: list of the numerical representation for the model's judgement replications for each prompt
   Returns:
-    df of the reliability of the model's judgements across replications for BBH only, MT-bench only, and full set of responses
+    df of the reliability of the model's judgements across replications for BBH only, SQuAD only, MT-bench only, and full set of responses
   '''
   mod_print_name = mod.replace('/', '_')
   df = pd.DataFrame.from_dict(judged_prompts_num)
@@ -84,17 +84,20 @@ def judge_reliab(judged_prompts_num):
       df.drop(col, axis=1, inplace=True)
   full_reliab = reliability_analysis(raw_dataset=df, is_corr_matrix=False)
   full_reliab.fit()
-  bbh_df = df.loc[:, df.columns.str.startswith('single')]
+  bbh_df = df.loc[:, df.columns.str.startswith('bbh')]
   bbh_reliab = reliability_analysis(raw_dataset=bbh_df, is_corr_matrix=False)
   bbh_reliab.fit()
-  mt_df = df.loc[:, df.columns.str.startswith('multi')]
+  squad_df = df.loc[:, df.columns.str.startswith('squad')]
+  squad_reliab = reliability_analysis(raw_dataset=squad_df, is_corr_matrix=False)
+  squad_reliab.fit()
+  mt_df = df.loc[:, df.columns.str.startswith('mtb')]
   mt_reliab = reliability_analysis(raw_dataset=mt_df, is_corr_matrix=False)
   mt_reliab.fit()
   results = {
-      "alpha": [bbh_reliab.alpha_cronbach, mt_reliab.alpha_cronbach, full_reliab.alpha_cronbach],
-      "omega": [bbh_reliab.omega_total, mt_reliab.omega_total, full_reliab.omega_total]
+      "alpha": [bbh_reliab.alpha_cronbach, squad_reliab.alpha_cronbach, mt_reliab.alpha_cronbach, full_reliab.alpha_cronbach],
+      "omega": [bbh_reliab.omega_total, squad_reliab.omega_total, mt_reliab.omega_total, full_reliab.omega_total]
       }
-  results_df = pd.DataFrame(results, index=["BBH", "MTB","Full"])
+  results_df = pd.DataFrame(results, index=["BBH", "SQuAD", "MTB","Full"])
   return results_df
 
 

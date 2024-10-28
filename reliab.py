@@ -27,41 +27,45 @@ def judge_to_numeric(judged_prompts):
     for prompt, judgements in jud_dict.items():
       curr_judgements = []
       for jud in judgements:
+          # Handles duplicate responses which result if no changes
+          # Multiple valid responses provided considered to be invalid response
+          res = 7.0
           jud_res = re.findall(r"\[\[[A-E]+(?:\]\])?",jud)
           jud_set = set(jud_res)
           # Only 1 response provided
           if len(jud_res) == 1 or len(jud_set) == 1:
-            curr_judgements.append(letter_to_number[jud_res[0][2]])
+            res = letter_to_number[jud_res[0][2]]
           # Same as above, handling answer cutoff
           elif len(jud_set) == 2 and list(jud_set)[0][0:3]== list(jud_set)[1][0:3]:
-            curr_judgements.append(letter_to_number[jud_res[0][2]])
+            res = letter_to_number[jud_res[0][2]]
           # No responses provided
           elif len(jud_res) == 0:
             # Check for invalid solutions - assign these 7.0
             inv_res = re.findall(r"\[\[[A-E]+(?:\]\])?",jud)
             if len(inv_res) > 0:
-              curr_judgements.append(7.0)
+              res = 7.0
             else:
               # Otherwise no response was provided
-              curr_judgements.append(6.0)
+              res = 6.0
           # Duplicates listed in response format
           else:
             # Split on sentences to find response
             sent_split = re.split(r"(?<!\w\.\w\.)(?<![A-Z]\.)(?<!\w\.\w\.)\s*\.\s*", jud)
             relev_sent = [sent for sent in sent_split if 'best' in sent.lower() or 'correct' in sent.lower()]
             if len(relev_sent) == 0:
-              curr_judgements.append(6.0)
+              res = 6.0
             else:
               ans = re.findall(r"\[\[[A-E]+(?:\]\])?",relev_sent[0])
               if len(set(ans)) == 1:
-                curr_judgements.append(letter_to_number[ans[0][2]])
+                res = letter_to_number[ans[0][2]]
               else:
                 # Split on newlines to find response
-                split_newlines = re.findall(r"(?:.*\[\[[A-E]+\]\].*)", relev_sent_tst[0], re.MULTILINE)
+                split_newlines = re.findall(r"(?:.*\[\[[A-E]+\]\].*)", relev_sent[0], re.MULTILINE)
                 for split in split_newlines:
                   if 'best' in split.lower() or 'correct' in split.lower():
                     ans = re.findall(r"\[\[[A-E]+(?:\]\])?",split)
-                    curr_judgements.append(letter_to_number[ans[0][2]])
+                    res = letter_to_number[ans[0][2]]
+          curr_judgements.append(res)
       num_judge_by_mod[mod][prompt] = curr_judgements
   return num_judge_by_mod
 

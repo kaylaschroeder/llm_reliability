@@ -4,7 +4,9 @@ import json
 import re
 
 # LLM judge types
-model_types = ['Nexusflow/Starling-LM-7B-beta']
+model_types = ['Nexusflow/Starling-LM-7B-beta',
+               'meta-llama/Meta-Llama-3-8B-Instruct',
+               'google/gemma-1.1-7b-it']
 
 # Load judgement data by model
 judgements_by_mod  = {}

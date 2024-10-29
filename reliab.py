@@ -79,23 +79,43 @@ def judge_reliab(judged_prompts_num):
   mod_print_name = mod.replace('/', '_')
   df = pd.DataFrame.from_dict(judged_prompts_num)
   # Drop columns where LLM makes no judgements
+  bbh_1_reliab_count = 0
+  squad_1_reliab_count = 0
+  mt_1_reliab_count = 0
   for col in df.columns:
     if len(df[col].unique()) == 1 and df[col].unique() == [6.0]:
       df.drop(col, axis=1, inplace=True)
+    elif len(df[col].unique()) == 1:
+      if col.startswith('bbh'):
+        bbh_1_reliab_count += 1
+      elif col.startswith('squad'):
+        squad_1_reliab_count += 1
+      elif col.startswith('mtb'):
+        mt_1_reliab_count += 1
+      df.drop(col, axis=1, inplace=True)
+  full_1_reliab_count = bbh_1_reliab_count + squad_1_reliab_count + mt_1_reliab_count
   full_reliab = reliability_analysis(raw_dataset=df, is_corr_matrix=False)
   full_reliab.fit()
+  full_reliab_alph = ((full_1_reliab_count)+((df.shape[1])*full_reliab.alpha_cronbach))/(full_1_reliab_count+df.shape[1])
+  full_reliab_omeg = ((full_1_reliab_count)+((df.shape[1])*full_reliab.omega_total))/(full_1_reliab_count+df.shape[1])
   bbh_df = df.loc[:, df.columns.str.startswith('bbh')]
   bbh_reliab = reliability_analysis(raw_dataset=bbh_df, is_corr_matrix=False)
   bbh_reliab.fit()
+  bbh_reliab_alph = ((bbh_1_reliab_count)+((bbh_df.shape[1])*bbh_reliab.alpha_cronbach))/(bbh_1_reliab_count+bbh_df.shape[1])
+  bbh_reliab_omeg = ((bbh_1_reliab_count)+((bbh_df.shape[1])*bbh_reliab.omega_total))/(bbh_1_reliab_count+bbh_df.shape[1])
   squad_df = df.loc[:, df.columns.str.startswith('squad')]
   squad_reliab = reliability_analysis(raw_dataset=squad_df, is_corr_matrix=False)
   squad_reliab.fit()
+  squad_reliab_alph = ((squad_1_reliab_count)+((squad_df.shape[1])*squad_reliab.alpha_cronbach))/(squad_1_reliab_count+squad_df.shape[1])
+  squad_reliab_omeg = ((squad_1_reliab_count)+((squad_df.shape[1])*squad_reliab.omega_total))/(squad_1_reliab_count+squad_df.shape[1])
   mt_df = df.loc[:, df.columns.str.startswith('mtb')]
   mt_reliab = reliability_analysis(raw_dataset=mt_df, is_corr_matrix=False)
   mt_reliab.fit()
+  mt_reliab_alph = ((mt_1_reliab_count)+((mt_df.shape[1])*mt_reliab.alpha_cronbach))/(mt_1_reliab_count+mt_df.shape[1])
+  mt_reliab_omeg = ((mt_1_reliab_count)+((mt_df.shape[1])*mt_reliab.omega_total))/(mt_1_reliab_count+mt_df.shape[1])
   results = {
-      "alpha": [bbh_reliab.alpha_cronbach, squad_reliab.alpha_cronbach, mt_reliab.alpha_cronbach, full_reliab.alpha_cronbach],
-      "omega": [bbh_reliab.omega_total, squad_reliab.omega_total, mt_reliab.omega_total, full_reliab.omega_total]
+      "alpha": [bbh_reliab_alph, squad_reliab_alph, mt_reliab_alph, full_reliab_alph],
+      "omega": [bbh_reliab_omeg, squad_reliab_omeg, mt_reliab_omeg, full_reliab_omeg]
       }
   results_df = pd.DataFrame(results, index=["BBH", "SQuAD", "MTB","Full"])
   return results_df
@@ -108,4 +128,11 @@ for mod, judge_dict in num_judge.items():
   judge_reliab_by_mod[mod] = judge_reliab(judge_dict)
   mod_print_name = mod.replace('/', '_')
   judge_reliab_by_mod[mod].to_csv(f'judge_reliab_{mod_print_name}.csv')
+  
+full_reliab_df = pd.concat([df.assign(source=key) for key, df in judge_reliab_by_mod.items()]).reset_index()
+full_reliab_df = full_reliab_df.pivot_table(index='source', columns='index', values='omega').reset_index().rename_axis(None, axis=1)
+full_reliab_df = full_reliab_df.rename(columns={'source': 'Model', 'Full':'All'})
+new_order = ['Model','All','BBH','MTB','SQuAD']
+full_reliab_df = full_reliab_df[new_order]
+full_reliab_df.to_csv('judge_full_reliab.csv')
   

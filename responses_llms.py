@@ -102,7 +102,6 @@ with open('model_responses.json', 'w') as f:
 prompt_responses = {}
 for model_name, response_list in model_responses.items():
   for response_dict in response_list:
-    prompt_key = response_dict['type'] + ':' + response_dict['prompt']['category']
     if response_dict['benchmark'] == 'mtb':
       prompt_key = response_dict['benchmark'] + ':' + response_dict['prompt']['category']
       prompts = response_dict['prompt']['turns']

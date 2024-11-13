@@ -6,13 +6,12 @@ import torch
 
 from utils import generate_txt
 
-device = "cuda:0"
+device = "cuda:1"
 
 # Define LLM types
 model_types = ['meta-llama/Meta-Llama-3-8B',
                'lmsys/vicuna-7b-v1.5',
                'google/gemma-7b',
-               'bigscience/bloom-7b1',
                'microsoft/phi-2',
                'tiiuae/falcon-7b']
                

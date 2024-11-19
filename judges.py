@@ -99,10 +99,7 @@ for mod in model_types:
     judgements_by_mod[mod] = model_judge(mod, prompt_resp_formatted, temperature_values, access_token)
 
 # Save judgements outputs to json
-curr_mod = model_types[0]
-curr_mod_print_name = curr_mod.replace('/', '_')
-
-with open(f'full_judgements_{curr_mod_print_name}.json', 'w') as f:
+with open(f'full_judgements.json', 'w') as f:
     json.dump(judgements_by_mod, f)
 
 

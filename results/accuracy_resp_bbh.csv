@@ -1,0 +1,7 @@
+,bbh:reasoning_about_colored_objects,bbh:object_counting,bbh:formal_fallacies,bbh:word_sorting,bbh:navigate,bbh:hyperbaton,bbh:ruin_names,bbh:date_understanding,bbh:disambiguation_qa,bbh:penguins_in_a_table,bbh:movie_recommendation,bbh:logical_deduction_three_objects,bbh:logical_deduction_five_objects,bbh:boolean_expressions,bbh:tracking_shuffled_objects_five_objects,bbh:temporal_sequences,bbh:multistep_arithmetic_two,bbh:tracking_shuffled_objects_three_objects,bbh:salient_translation_error_detection,bbh:geometric_shapes,bbh:dyck_languages,bbh:tracking_shuffled_objects_seven_objects,bbh:causal_judgement,bbh:sports_understanding,bbh:logical_deduction_seven_objects,bbh:web_of_lies,bbh:snarks
+0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+3,1,0,0,0,0,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,1
+4,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+prompt_accuracy,2,0,0,0,0,2,1,1,2,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,1

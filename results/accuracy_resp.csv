@@ -1,7 +1,0 @@
-,single:reasoning_about_colored_objects,single:hyperbaton,single:ruin_names,single:date_understanding,single:disambiguation_qa,single:penguins_in_a_table,single:movie_recommendation,single:logical_deduction_three_objects,single:logical_deduction_five_objects,single:tracking_shuffled_objects_five_objects,single:temporal_sequences,single:tracking_shuffled_objects_three_objects,single:salient_translation_error_detection,single:geometric_shapes,single:tracking_shuffled_objects_seven_objects,single:logical_deduction_seven_objects,single:snarks
-0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0
-1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0
-2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-3,1,0,1,1,0,0,0,0,1,0,0,0,0,0,1,1,1
-4,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-prompt_accuracy,1,1,1,2,2,0,0,0,1,0,0,0,0,0,1,1,1

@@ -5,6 +5,7 @@ from nltk.corpus import stopwords
 
 nltk.download('stopwords')
 nltk.download('punkt')
+nltk.download('punkt_tab')
 
 with open('bbh_sampled_q.json') as s:
   bbh_samp = json.load(s)

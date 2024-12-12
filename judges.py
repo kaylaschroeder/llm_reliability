@@ -20,10 +20,8 @@ model_types = ['Nexusflow/Starling-LM-7B-beta', 'meta-llama/Meta-Llama-3-8B-Inst
 # Load data for judgement
 with open('prompt_responses.json', 'r') as resp:
     prompt_resp = json.load(resp)
-    
-# Seeds for LLM as judge
+
 random.seed(2)
-judge_seeds = random.sample(range(1,10000),100)
 
 judge_prompt = """You are a fair and objective judge tasked with selecting the strongest of the following responses to the provided question. Base your judgement upon the accuracy, utility, and relevance of each. Do not consider length of response, positioning of response or title of response in your judgement. Output the letter of the best response followed by an explanation, and strictly follow the following format: "Best Response: [[letter]]".
 """

@@ -13,7 +13,7 @@ model_types = ['lmsys/vicuna-7b-v1.5',
                'tiiuae/falcon-7b']
                
 # Access token for hugging face
-access_token = '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'
+access_token = ''
                
 # Load sampled questions
 with open('head_to_tail_dblp.json', 'r') as dblp:

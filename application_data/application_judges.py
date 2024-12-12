@@ -10,7 +10,7 @@ from utils import generate_judge
 device = "cuda:1"
 
 # Hugging face access token
-access_token = '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'
+access_token = ''
 
 # Define LLM judge types
 model_types = ['Nexusflow/Starling-LM-7B-beta', 'meta-llama/Meta-Llama-3-8B-Instruct', 'google/gemma-1.1-7b-it']

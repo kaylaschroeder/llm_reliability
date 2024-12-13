@@ -6,21 +6,13 @@ The repository contains supporting repository for the paper 'Can You Trust LLM J
 
 **Benchmark Data**: We provide the sampled questions from each benchmark within the files `bbh_sampled_q.json`, `squad_sampled_q.json`, and `mt_bench_sampled_q.json`. Replicate the question sampling process from the BBH, SQuAD, and MT-Bench benchmarks using the `question_selection.py` script and the full benchmarks contained within the `benchmarks` folder.
 
-**Benchmark LLM Responses**:
-
+**Benchmark LLM Responses**: Use the `responses_llms.py` script to obtain LLM responses to the sampled benchmark questions. To run this script, define the model types of interest using their Hugging Face names within the `model_types` parameter, update `access_token` to include your Hugging Face access token to the models, and update `cuda` to your respective device. We provide the prompt responses obtained from our experiments within the file `prompt_responses.json`.
 * Accuracy of responses to benchmarks that are not open ended are contained within the `results` folder in the files `accuracy_resp_bbh.csv` and `accuracy_resp_squad.csv`. Accuracies can be obtained using the script `resp_accuracy.py`.
 
-**LLM Judgments**: The `judges.py` script .
-
-We include our judgment results that are used within the paper in the zip file `full_judgments.zip` located within the `results` folder.
+**LLM Judgments**: The `judges.py` script can be utilized to obtain LLM judgments to the LLM responses to the sampled benchmark questions. To run this script, define the model types of interest using their Hugging Face names within the `model_types` parameter, update `access_token` to include your Hugging Face access token to the models, and update `cuda` to your respective device. We include our judgment results that are used within the paper in the zip file `full_judgments.zip` located within the `results` folder.
 
 **Judge Reliability**: The `reliab.py` script can be run to obtain reliability for all judgment models, using the judgment results. Our reliability results included within the paper are contained within the results folder.
 
-
-
-prompt_responses.json
-
-responses_llms.py
 
 utils.py
 

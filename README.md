@@ -4,6 +4,19 @@ The repository contains supporting repository for the paper 'Can You Trust LLM J
 
 ### Within the Repo: Experiments
 
+**Benchmark Data**: We provide the sampled questions from each benchmark within the files `bbh_sampled_q.json`, `squad_sampled_q.json`, and `mt_bench_sampled_q.json`. Replicate the question sampling process from the BBH, SQuAD, and MT-Bench benchmarks using the `question_selection.py` script and the full benchmarks contained within the `benchmarks` folder.
+
+
+judges.py
+prompt_responses.json
+
+reliab.py
+resp_accuracy.py
+responses_llms.py
+
+utils.py
+
+
 ### Within the Repo: Application Experiments 
 
 The `application_data` folder contains all the necessary components to replicate the application of our framework (as discussed in the paper) to the academics domain of the Head-to-Tail benchmark from [Sun et al. (2024)](https://aclanthology.org/2024.naacl-long.18.pdf). 

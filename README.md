@@ -10,8 +10,6 @@ The `application_data` folder contains all the necessary components to replicate
 
 The files `head_to_tail_dblp.json` and `head_to_tail_mag.json` contain the Academics domain Head-to-Tail questions. To obtain these questions, we followed the process outlined by the GitHub supporting Sun et al. (2024). Please see their GitHub for further detail.
 
-judgment_results
-
 application_judges.py
 
 application_reliab.py
@@ -19,4 +17,8 @@ application_reliab.py
 application_responses.json
 
 application_responses.py
+
+
+Final judgment results from all judgment models are contained within the `judgment_results` folder.
+
 

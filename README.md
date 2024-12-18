@@ -1,6 +1,6 @@
 # Can You Trust LLM Judgments? Reliability of LLM-as-a-Judge
 ### Introduction
-The repository contains supporting repository for the paper 'Can You Trust LLM Judgments? Reliability of LLM-as-a-Judge' which can be accessed [here](TO ADD: ARXIV LINK).
+The repository contains supporting repository for the paper 'Can You Trust LLM Judgments? Reliability of LLM-as-a-Judge' which can be accessed [here](https://arxiv.org/abs/2412.12509).
 
 ### Within the Repo: Experiments
 
